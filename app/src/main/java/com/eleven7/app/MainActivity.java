@@ -13,6 +13,9 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.OpenableColumns;
 import android.provider.Settings;
+import android.print.PrintDocumentAdapter;
+import android.print.PrintManager;
+import android.util.Base64;
 import android.view.Gravity;
 import android.view.View;
 import android.webkit.JavascriptInterface;
@@ -40,6 +43,7 @@ public class MainActivity extends Activity {
     WebView web;
     TextView homeBtn;
     File dir;
+    String injectJs = null;
 
     @Override
     protected void onCreate(Bundle b) {
@@ -76,8 +80,14 @@ public class MainActivity extends Activity {
             public void onPageStarted(WebView v, String url, android.graphics.Bitmap icon) {
                 homeBtn.setVisibility(url.startsWith(HOME) ? View.GONE : View.VISIBLE);
             }
+
+            @Override
+            public void onPageFinished(WebView v, String url) {
+                if (injectJs != null) v.evaluateJavascript(injectJs, null);
+            }
         });
 
+        try { injectJs = readAsset("e7-inject.js"); } catch (Exception ignored) { }
         if (hasAccess()) prepare();
         else if (Build.VERSION.SDK_INT < 30) {
             requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQ_PERM);
@@ -110,6 +120,30 @@ public class MainActivity extends Activity {
     public void onRequestPermissionsResult(int code, String[] p, int[] r) {
         super.onRequestPermissionsResult(code, p, r);
         if (hasAccess()) { prepare(); js("window.refreshAll&&refreshAll()"); }
+    }
+
+    String readAsset(String n) throws IOException {
+        try (InputStream in = getAssets().open(n)) {
+            java.io.ByteArrayOutputStream o = new java.io.ByteArrayOutputStream();
+            byte[] b = new byte[4096];
+            int k;
+            while ((k = in.read(b)) > 0) o.write(b, 0, k);
+            return o.toString("UTF-8");
+        }
+    }
+
+    File saveBytes(String name, byte[] bytes) throws IOException {
+        name = name == null ? "" : name.replaceAll("[\\\\/:*?\"<>|]", "_").trim();
+        if (name.isEmpty()) name = "download";
+        File d = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Eleven7");
+        d.mkdirs();
+        if (!d.isDirectory() || !d.canWrite()) { d = new File(dir, "Saved"); d.mkdirs(); }
+        File out = new File(d, name);
+        int dot = name.lastIndexOf('.');
+        String base = dot > 0 ? name.substring(0, dot) : name, ext = dot > 0 ? name.substring(dot) : "";
+        for (int i = 1; out.exists(); i++) out = new File(d, base + " (" + i + ")" + ext);
+        try (OutputStream o = new FileOutputStream(out)) { o.write(bytes); }
+        return out;
     }
 
     void js(String code) { runOnUiThread(() -> web.evaluateJavascript(code, null)); }
@@ -222,6 +256,33 @@ public class MainActivity extends Activity {
                         .setNegativeButton("Cancel", null)
                         .show();
                 } catch (Exception ignored) { }
+            });
+        }
+
+        @JavascriptInterface
+        public void saveData(String name, String dataUrl) {
+            try {
+                int c = dataUrl.indexOf(',');
+                String meta = dataUrl.substring(0, c), body = dataUrl.substring(c + 1);
+                byte[] bytes = meta.contains(";base64")
+                        ? Base64.decode(body, Base64.DEFAULT)
+                        : Uri.decode(body).getBytes("UTF-8");
+                File out = saveBytes(name, bytes);
+                toast("Saved: " + out.getPath());
+                js("window.refreshAll&&refreshAll()");
+            } catch (Exception e) {
+                toast("Could not save file");
+            }
+        }
+
+        @JavascriptInterface
+        public void print() {
+            runOnUiThread(() -> {
+                try {
+                    PrintManager pm = (PrintManager) getSystemService(PRINT_SERVICE);
+                    PrintDocumentAdapter a = web.createPrintDocumentAdapter("Eleven7");
+                    pm.print("Eleven7", a, null);
+                } catch (Exception e) { toast("Print is not available"); }
             });
         }
 
