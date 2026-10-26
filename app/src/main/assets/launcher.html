@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Eleven 7</title>
+<style>
+:root{
+  --bg:#121212; --card:#1e1e20; --chip:#1e1e20; --line:#2c2c30; --text:#f4f4f5; --muted:#8c8c94; --on:#f4f4f5; --on-ink:#121212; --heart:#ff5a6e;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){--bg:#f2f2f4;--card:#fff;--chip:#fff;--line:#e0e0e5;--text:#17171a;--muted:#75757e;--on:#17171a;--on-ink:#fff}
+}
+:root[data-theme="light"]{--bg:#f2f2f4;--card:#fff;--chip:#fff;--line:#e0e0e5;--text:#17171a;--muted:#75757e;--on:#17171a;--on-ink:#fff}
+:root[data-theme="dark"]{--bg:#121212;--card:#1e1e20;--chip:#1e1e20;--line:#2c2c30;--text:#f4f4f5;--muted:#8c8c94;--on:#f4f4f5;--on-ink:#121212}
+*{box-sizing:border-box;margin:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--text);font-family:"Inter","Segoe UI",system-ui,sans-serif;min-height:100vh;max-width:520px;margin:0 auto;padding:14px 16px 90px}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+button:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.round{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-size:17px;color:var(--text)}
+.bar h1{font-size:19px;font-weight:600}
+.list{display:flex;flex-direction:column;gap:14px}
+.card{display:flex;align-items:center;gap:14px;padding:12px;background:var(--card);border-radius:20px;text-align:left;width:100%}
+.card:active{transform:scale(.985)}
+.thumb{width:92px;height:92px;border-radius:16px;display:grid;place-items:center;font-size:46px;flex:none;position:relative;overflow:hidden}
+.thumb::after{content:"";position:absolute;inset:auto -10px -22px -10px;height:44px;background:rgba(0,0,0,.18);border-radius:50%;filter:blur(8px)}
+.info{flex:1;min-width:0}
+.by{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);margin-bottom:8px}
+.av{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;color:#121212}
+.name{font-size:17px;font-weight:600;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.likes{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:var(--muted)}
+.likes[aria-pressed="true"]{color:var(--heart)}
+.empty{color:var(--muted);text-align:center;padding:40px 0;font-size:14px}
+#toast{position:fixed;left:50%;bottom:calc(70px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;background:var(--on);color:var(--on-ink);padding:10px 18px;border-radius:99px;font-size:13.5px;transition:.25s;pointer-events:none;white-space:nowrap}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:.2s;z-index:4}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;bottom:0;left:0;width:min(300px,82vw);background:var(--card);transform:translateX(-100%);transition:.25s;padding:calc(20px + env(safe-area-inset-top,0px)) 14px 20px;display:flex;flex-direction:column;gap:4px;z-index:5;visibility:hidden}
+.drawer.on{transform:none;visibility:visible}
+.drawer h2{font-size:20px;padding:4px 12px 14px}
+.mi{display:flex;align-items:center;gap:14px;padding:13px 12px;border-radius:14px;width:100%;text-align:left;font-size:15.5px}
+.mi:hover,.mi.sel{background:var(--bg)}
+.lbl{font-size:12.5px;color:var(--muted);padding:14px 12px 6px}
+.seg{display:flex;background:var(--bg);border-radius:99px;padding:3px;margin:0 12px}
+.seg button{flex:1;padding:8px 0;border-radius:99px;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--on);color:var(--on-ink);font-weight:600}
+.crumb{font-size:13px;color:var(--muted);margin:0 4px 12px;word-break:break-all}
+.row{display:flex;align-items:center;gap:14px;padding:13px 14px;background:var(--card);border-radius:16px;width:100%;text-align:left}
+.row .fi{font-size:24px;width:34px;text-align:center}
+.row .fn{font-size:15.5px;font-weight:500}
+.row .fs{margin-left:auto;font-size:12.5px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.banner{display:flex;gap:12px;align-items:center;background:var(--card);border-radius:16px;padding:14px;margin-bottom:14px;font-size:14px;line-height:1.4}
+.banner button{background:var(--on);color:var(--on-ink);padding:9px 16px;border-radius:99px;font-weight:600;flex:none}
+.hint{color:var(--muted);font-size:12.5px;text-align:center;margin-top:16px}
+.by span+span{margin-left:4px}
+</style>
+</head>
+<body>
+<div class="bar">
+  <button class="round" aria-label="Menu" id="mbtn">☰</button>
+  <h1 id="title">Explore</h1>
+  <button class="round" aria-label="Add HTML" id="abtn">+</button>
+</div>
+<div class="list" id="list"></div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Menu">
+  <h2>Eleven 7</h2>
+  <button class="mi sel" id="m-home"><span>🧭</span>Explore</button>
+  <button class="mi" id="m-files"><span>📁</span>Files</button>
+  <button class="mi" id="m-refresh"><span>⟳</span>Refresh</button>
+  <div class="lbl">Appearance</div>
+  <div class="seg" id="seg">
+    <button data-m="system" aria-pressed="true">System</button>
+    <button data-m="light" aria-pressed="false">Light</button>
+    <button data-m="dark" aria-pressed="false">Dark</button>
+  </div>
+  <div class="lbl" id="folder"></div>
+</aside>
+<div id="toast" role="status"></div>
+
+<script>
+var N=window.Eleven7Native;
+var emo=["🍄","🤖","🥫","🌱","🎮","🚀","🧩","🎨","🔮","🐙","🍕","🎧"];
+var grads=["#6d5bd0,#2b2a5e","#ff8a3d,#b33a12","#7fd6c2,#2c7a86","#8fd16a,#2f6b2a","#5b8def,#243f8f","#c07cf0,#5a2a8a","#ffb400,#a86b00","#ef6f8f,#8a2a48"];
+var tints=["#ffb4c8","#ffd27a","#c8f0e6","#e0ffc2","#cfe0ff","#ecd3ff","#fff0c2","#ffd0dc"];
+var list=document.getElementById("list"),toast=document.getElementById("toast"),drawer=document.getElementById("drawer"),scrim=document.getElementById("scrim"),tm;
+var view="home",path=[],favs={};
+try{favs=JSON.parse(localStorage.getItem("e7favs")||"{}")}catch(e){}
+function say(m){toast.textContent=m;toast.classList.add("on");clearTimeout(tm);tm=setTimeout(function(){toast.classList.remove("on")},1800)}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function hash(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h}
+function ls(p){try{return N?JSON.parse(N.list(p)):[]}catch(e){return[]}}
+function allHtml(p,d){
+  var out=[];
+  ls(p).forEach(function(e){
+    var rel=p?p+"/"+e.n:e.n;
+    if(e.d){if(d<3)out=out.concat(allHtml(rel,d+1))}
+    else if(/\.html?$/i.test(e.n))out.push({rel:rel,file:e.n,s:e.s,dir:p});
+  });
+  return out;
+}
+function title(x){
+  var n=x.file.replace(/\.html?$/i,"");
+  if(/^index$/i.test(n)&&x.dir)n=x.dir.split("/").pop();
+  return n;
+}
+function longPress(el,fn){
+  var t;
+  el.addEventListener("touchstart",function(){t=setTimeout(function(){t=null;fn()},650)},{passive:true});
+  ["touchend","touchmove","touchcancel"].forEach(function(k){el.addEventListener(k,function(){clearTimeout(t)},{passive:true})});
+  el.addEventListener("contextmenu",function(e){e.preventDefault();fn()});
+}
+function banner(){
+  if(!N||N.hasAccess())return;
+  var b=document.createElement("div");b.className="banner";
+  b.innerHTML="<span>Allow file access so Eleven 7 can read your Eleven7 folder.</span><button>Allow</button>";
+  b.querySelector("button").onclick=function(){N.requestAccess()};
+  list.appendChild(b);
+}
+function draw(){
+  list.innerHTML="";banner();
+  var arr=allHtml("",0);
+  if(!arr.length){
+    var p=document.createElement("p");p.className="empty";
+    p.textContent="No pages yet. Tap + to add an HTML file.";list.appendChild(p);return;
+  }
+  arr.forEach(function(x){
+    var h=hash(x.rel),g=grads[h%grads.length].split(","),name=title(x),dir=x.dir||"Eleven7";
+    var c=document.createElement("div");c.className="card";c.tabIndex=0;c.setAttribute("role","button");
+    c.innerHTML='<div class="thumb" style="background:linear-gradient(145deg,'+g[0]+','+g[1]+')">'+emo[h%emo.length]+'</div>'+
+      '<div class="info"><div class="by"><span class="av" style="background:'+tints[h%tints.length]+'">'+esc(dir.charAt(0).toUpperCase())+'</span><span>'+esc(dir)+'</span><span>'+esc(x.s)+'</span></div>'+
+      '<div class="name">'+esc(name)+'</div>'+
+      '<button class="likes" aria-pressed="'+!!favs[x.rel]+'" aria-label="Save '+esc(name)+'">'+(favs[x.rel]?"♥ Saved":"♡ Save")+'</button></div>';
+    c.onclick=function(){N.open(x.rel)};
+    c.onkeydown=function(e){if(e.key==="Enter")N.open(x.rel)};
+    c.querySelector(".likes").onclick=function(e){
+      e.stopPropagation();favs[x.rel]=!favs[x.rel];
+      try{localStorage.setItem("e7favs",JSON.stringify(favs))}catch(err){}
+      draw();
+    };
+    longPress(c,function(){N.remove(x.rel)});
+    list.appendChild(c);
+  });
+  var hn=document.createElement("p");hn.className="hint";hn.textContent="Long-press a page to remove it.";list.appendChild(hn);
+}
+function icon(e){if(e.d)return"📁";if(/\.html?$/i.test(e.n))return"🌐";if(/\.(png|jpe?g|gif|webp|svg)$/i.test(e.n))return"🖼️";return"📄"}
+function drawFiles(){
+  list.innerHTML="";banner();
+  var cr=document.createElement("div");cr.className="crumb";
+  cr.textContent="Eleven7"+path.map(function(p){return" / "+p}).join("");list.appendChild(cr);
+  if(path.length){
+    var up=document.createElement("button");up.className="row";
+    up.innerHTML='<span class="fi">↩</span><span class="fn">Back</span>';
+    up.onclick=function(){path.pop();drawFiles()};list.appendChild(up);
+  }
+  var base=path.join("/"),items=ls(base);
+  if(!items.length){var p=document.createElement("p");p.className="empty";p.textContent="This folder is empty.";list.appendChild(p)}
+  items.forEach(function(e){
+    var rel=base?base+"/"+e.n:e.n,b=document.createElement("button");b.className="row";
+    b.innerHTML='<span class="fi">'+icon(e)+'</span><span class="fn">'+esc(e.n)+'</span><span class="fs">'+esc(e.s)+'</span>';
+    b.onclick=function(){
+      if(e.d){path.push(e.n);drawFiles()}
+      else if(/\.html?$/i.test(e.n))N.open(rel);
+      else say(e.n);
+    };
+    if(!e.d)longPress(b,function(){N.remove(rel)});
+    list.appendChild(b);
+  });
+}
+function refreshAll(){if(view==="files")drawFiles();else draw()}
+window.refreshAll=refreshAll;
+function go(v){
+  view=v;path=[];
+  document.getElementById("title").textContent=v==="files"?"Files":"Explore";
+  document.getElementById("abtn").style.visibility=v==="files"?"hidden":"visible";
+  document.getElementById("m-home").classList.toggle("sel",v==="home");
+  document.getElementById("m-files").classList.toggle("sel",v==="files");
+  refreshAll();
+}
+function menu(on){drawer.classList.toggle("on",on);scrim.classList.toggle("on",on)}
+document.getElementById("mbtn").onclick=function(){menu(true)};
+scrim.onclick=function(){menu(false)};
+document.getElementById("m-home").onclick=function(){go("home");menu(false)};
+document.getElementById("m-files").onclick=function(){go("files");menu(false)};
+document.getElementById("m-refresh").onclick=function(){menu(false);refreshAll();say("Refreshed")};
+document.getElementById("abtn").onclick=function(){
+  if(!N)return;
+  if(!N.hasAccess()){say("Allow file access first");N.requestAccess();return}
+  N.pick();
+};
+function setTheme(m){
+  var r=document.documentElement;
+  if(m==="system")r.removeAttribute("data-theme");else r.setAttribute("data-theme",m);
+  document.querySelectorAll("#seg button").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.m===m)});
+  try{localStorage.setItem("e7theme",m)}catch(e){}
+}
+document.querySelectorAll("#seg button").forEach(function(b){b.onclick=function(){setTheme(b.dataset.m)}});
+var saved=null;try{saved=localStorage.getItem("e7theme")}catch(e){}
+if(saved)setTheme(saved);
+if(N)document.getElementById("folder").textContent="Folder: "+N.folder();
+draw();
+</script>
+</body>
+</html>
